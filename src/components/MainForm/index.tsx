@@ -4,8 +4,12 @@ import { DefaultButton } from "../DefaultIButton";
 import { DefaultInput } from "../DefaultInput";
 
 export function MainForm() {
+  function handlerCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    console.log('Deu certo!');
+  }
   return (
-    <form className='form' action="">
+    <form onSubmit={handlerCreateNewTask} className='form' action="">
       <div className='formRow'>
         <DefaultInput
           labelText='task' 
@@ -16,7 +20,7 @@ export function MainForm() {
       </div>
 
       <div className='formRow'>
-        <p> Texto</p>
+        <p> Texto </p>
       </div>
 
       <div className='formRow'>
