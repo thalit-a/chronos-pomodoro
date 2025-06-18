@@ -1,6 +1,5 @@
-import { Trash2Icon } from "lucide-react";
 import { Container } from "../../components/Container";
-import { DefaultButton } from "../../components/DefaultIButton";
+import { DefaultButton } from "../../components/DefaultButton";
 import { Heading } from "../../components/Heading";
 import { MainTemplate } from "../../templates/MainTemplates";
 
@@ -9,10 +8,16 @@ import { useTaskContext } from "../../contexts/TaskContext/useTaskContext";
 import { formatDate } from "../../utils/formateDate";
 import { getTaskStatus } from "../../utils/getTaskStatus";
 import { sortTasks, SortTasksOptions } from "../../utils/sortTasks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { TrashIcon } from "lucide-react";
+import { showMessage } from "../../adapters/showMessage";
+import { TaskActionTypes } from "../../contexts/TaskContext/taskActions";
 
 export function History() {
-  const {state} = useTaskContext();
+  const {state, dispatch} = useTaskContext();
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
+  const hasTasks = state.task.length > 0;
+
   const [sortTasksOptions, setSortTaskOptions] = useState<SortTasksOptions>(
     () => {
     return {
@@ -22,6 +27,31 @@ export function History() {
     };
   },
 );
+
+  useEffect(() => {
+    setSortTaskOptions(prevState => ({
+      ...prevState,
+      tasks: sortTasks({
+        tasks: state.task,
+        direction: prevState.direction,
+        field: prevState.field,
+      }),
+    }));
+  }, [state.task]);
+
+  useEffect(() => {
+    if(!confirmClearHistory) return
+
+    setConfirmClearHistory(false);
+
+    dispatch({ type: TaskActionTypes.RESET_STATE})
+  }, [confirmClearHistory, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      showMessage.dismiss();
+    };
+  }, []);
 
   function handleSortTasks({field}: Pick<SortTasksOptions, 'field'>) {
     const newDirection = sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
@@ -37,20 +67,32 @@ export function History() {
     });
   }
 
+  function handleResetHistory() {
+    showMessage.dismiss();
+    showMessage.confirm('Tem certeza que deseja apagar o histórico?', confirmation => {
+      setConfirmClearHistory(confirmation);
+    });
+  };
+
   return ( 
     <MainTemplate>
       <Container>
         <Heading>
           <span>History</span>
-          <span className={styles.buttonContainer}>
-            <DefaultButton icon={<Trash2Icon/>} color='red'
-            aria-label='Apagar todo o histórico'
-            title='Apagar todo o histórico'/>
-          </span>
+          {hasTasks && (
+            <span className={styles.buttonContainer}>
+              <DefaultButton icon={<TrashIcon/>} color='red'
+              aria-label='Apagar todo o histórico'
+              title='Apagar todo o histórico'
+              onClick={handleResetHistory}
+              />
+            </span>
+          )}
         </Heading>
       </Container>
 
       <Container>
+        {hasTasks && (
         <div className={styles.responsiveTable}> 
           <table>
             <thead>
@@ -97,6 +139,13 @@ export function History() {
             </tbody>
           </table>
         </div>
+        )} 
+
+        {!hasTasks && (
+          <p style={{ textAlign: 'center', fontWeight: 'bold '}}>
+            Ainda não existem tarefas criadas.
+          </p>
+        )}        
       </Container>
     </MainTemplate> 
   ); 

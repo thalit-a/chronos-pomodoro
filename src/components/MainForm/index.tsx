@@ -1,6 +1,6 @@
 import { PlayCircleIcon, StopCircleIcon } from "lucide-react";
 import { Cycles } from "../Cycles";
-import { DefaultButton } from "../DefaultIButton";
+import { DefaultButton } from "../DefaultButton";
 import { DefaultInput } from "../DefaultInput";
 import { useRef } from "react";
 import type { TaskModel } from "../../models/TaskModel";
